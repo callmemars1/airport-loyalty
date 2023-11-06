@@ -1,0 +1,8 @@
+*.bkp
+*.dtmp
+[Oo]bj
+[Bb]in
+secrets/.env
+.idea
+.venv
+venv
