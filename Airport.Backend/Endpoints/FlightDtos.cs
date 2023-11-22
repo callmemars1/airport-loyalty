@@ -1,9 +1,9 @@
-using Airport.Backend.Model.Flights;
+/*using Airport.Model.Flights;
 
 namespace Airport.Backend.Endpoints;
 
 public record FlightDto(
-    int Id,
+    Guid Id,
     AirportDto DepartureAirport,
     AirportDto ArrivalAirport,
     DateTime DepartureDateTimeUtc,
@@ -20,7 +20,7 @@ public record FlightDto(
             flight.DepartureDateTimeUtc,
             flight.ArrivalDateTimeUtc,
             AirplaneDto.CreateFromEntity(flight.Airplane),
-            GateDto.CreateFromEntity(flight.Gate)
+            GateDto.CreateFromEntity(flight.ArrivalGate)
         );
 }
 
@@ -88,4 +88,4 @@ public record FlightSearchParametersDto(
     DateTime? FromUtc,
     DateTime? TillUtc,
     int DepartureAirportId,
-    int ArrivalAirportId);
+    int ArrivalAirportId);*/
