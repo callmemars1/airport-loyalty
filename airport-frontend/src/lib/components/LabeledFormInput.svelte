@@ -1,15 +1,21 @@
 <script lang="ts">
+    import ErrorsList from './ErrorsList.svelte'
+    
     export let title: String = "No title.";
     export let id: String;
     export let placeholder: String = title.toLowerCase();
-    export let inputType: String = "text";
+    export let inputType: 'email' | 'text' | 'password' | 'number' = 'text';
     export let value: String;
     export let errors: string[];
+    export let required: Boolean = false;
+
+    export let formatter = (e: InputEvent) => {  };
+    
+    const ref = (node: HTMLInputElement) => {
+        node.type = inputType
+    }
 
     $: valid = !errors || errors.length === 0
-
-
-    export let required: Boolean = false;
 </script>
 
 
@@ -22,35 +28,18 @@
             {/if}
         </label>
     </div>
-    {#if inputType === "text"}
-        <input
-                class="input input-bordered w-full"
-                class:border-red-700={!valid}
-                id={id}
-                placeholder={placeholder}
-                type="text"
-                required={required}
-                bind:value={value}
-        />
-    {:else if inputType === "password"}
-        <input
-                class="input input-bordered w-full"
-                class:border-red-700={!valid}
-                id={id}
-                placeholder={placeholder}
-                type="password"
-                required={required}
-                bind:value={value}
-        >
-    {/if}
+    <input
+            class="input input-bordered w-full placeholder-secondary/50"
+            class:border-red-700={!valid}
+            id={id}
+            placeholder={placeholder}
+            required={required}
+            bind:value={value}
+            use:ref
+            on:beforeinput={formatter}
+    />
 
     {#if !valid}
-        <div class="flex flex-col">
-            {#each errors as error}
-                <span class="mt-2 text-sm text-red-500">
-                    — {error}
-                </span>
-            {/each}
-        </div>
+        <ErrorsList bind:errors={errors} />
     {/if}
 </div>

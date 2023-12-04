@@ -2,15 +2,15 @@ namespace Airport.Model.Flights;
 
 public class AirplaneModel
 {
-    public AirplaneModel(int id, string title, string brand)
+    public AirplaneModel(int id, string title, string manufacturer)
     {
         Id = id;
         Title = title;
-        Brand = brand;
+        Manufacturer = manufacturer;
     }
 
     // EF
-    private AirplaneModel()
+    protected AirplaneModel()
     {
     }
 
@@ -18,7 +18,7 @@ public class AirplaneModel
 
     public string Title { get; private set; } = null!;
 
-    public string Brand { get; private set; } = null!;
+    public string Manufacturer { get; private set; } = null!;
 
-    public IEnumerable<RowClass> RowClasses { get; private set; } = Array.Empty<RowClass>();
+    public virtual IEnumerable<RowClass> RowClasses { get; private set; } = Array.Empty<RowClass>();
 }

@@ -1,21 +1,65 @@
 <script lang="ts">
     import Form from "$lib/components/Form.svelte"
     import LabeledFormInput from "$lib/components/LabeledFormInput.svelte"
+    import Preloader from '$lib/components/Preloader.svelte'
+    import ErrorsList from '$lib/components/ErrorsList.svelte'
 
     let login: String = ""
     let password: String = ""
-    
-    let errors = [""]
+    let errors: string[] = []
+
+    let submitPromise: Promise
+
+    const signIn = async (data) => {
+        const response = await fetch('/api/auth/sign-in', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data),
+        });
+
+        if (response.status === 404) {
+            const errorData = await response.json();
+            console.log(errorData)
+            errors = errorData.errors;
+        } else if (response.status === 200) {
+            window.location.href = '/'
+        } else {
+            throw new Error(response.status)
+        }
+    };
+
+    const handleSubmit = async () => {
+        await signIn({login, password});
+    };
+
 </script>
 
-<Form title="Вход">
+<Form title="Вход" submitEventName="signInFormSubmit" on:signInFormSubmit={() => submitPromise = handleSubmit()}>
     <svelte:fragment slot="inputs">
-        <LabeledFormInput title="Логин" bind:value={login} bind:errors={errors} required/>
-        <LabeledFormInput title="Пароль" inputType="password" bind:errors={errors} bind:value={password} required/>
+        <LabeledFormInput
+                title="Логин"
+                placeholder="ivanov01"
+                bind:value={login}
+                required
+        />
+        <LabeledFormInput
+                title="Пароль"
+                placeholder="********"
+                inputType="password"
+                bind:value={password}
+                required
+        />
+        {#if errors && errors.length > 0}
+            <div class="divider divider-neutral">Ошибка</div>
+            <ErrorsList bind:errors={errors} />
+            <div class="divider divider-neutral" />
+        {/if}
     </svelte:fragment>
     <svelte:fragment slot="controls">
-        <button class="btn btn-ghost" type="submit">Назад</button>
+        <a class="btn btn-ghost" href="/">Назад</a>
         <button class="btn btn-primary btn-outline" type="submit">Продолжить</button>
     </svelte:fragment>
 </Form>
 <span>Еще нет аккаунта? <a href="sign-up" class="link text-primary">Зарегистрируйтесь.</a></span>
+
+<Preloader bind:promise={submitPromise}/>

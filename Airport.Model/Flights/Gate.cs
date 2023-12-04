@@ -12,7 +12,7 @@ public class Gate
     }
 
     // EF
-    private Gate()
+    protected Gate()
     {
     }
 
@@ -22,7 +22,7 @@ public class Gate
     
     public string Terminal { get; set; } = null!;
 
-    public Airport Airport { get; private set; } = null!;
+    public virtual Airport Airport { get; private set; } = null!;
     
     public int AirportId { get; private set; }
 }

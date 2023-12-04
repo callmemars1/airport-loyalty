@@ -1,0 +1,23 @@
+http:
+  routers:
+    frontend:
+      rule: "Host(`localhost`) && PathPrefix(`/`)"
+      service: frontend
+      entryPoints:
+        - web
+    backend:
+      rule: "Host(`localhost`) && PathPrefix(`/api`)"
+      service: backend
+      entryPoints:
+        - web
+
+  services:
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:5173"
+    backend:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:5000"
+

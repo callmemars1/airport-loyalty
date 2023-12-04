@@ -1,79 +1,120 @@
-/*using Airport.Backend.Model.Core;
-using Airport.Backend.Model.Flights;
+using Airport.Model;
+using Airport.Model.Flights;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Airport.Backend.Endpoints;
 
-using GetFlightByIdResult = Results<Ok<FlightDto>, NotFound>;
 
 public static class FlightsEndpoints
 {
-    public static void RegisterFlightsEndpoints(this WebApplication app)
+    public static void RegisterFlightsEndpoints(this IEndpointRouteBuilder app)
     {
         var flightsEndpointsGroup = app.MapGroup("/flights");
 
-        flightsEndpointsGroup.MapGet("", GetFlightByIdAsync);
         flightsEndpointsGroup.MapGet("arriving", GetArrivingFlightsAsync);
         flightsEndpointsGroup.MapGet("departing", GetDepartingFlightsAsync);
-        flightsEndpointsGroup.MapPost("search", GetFlightsBySearchParameters);
+        flightsEndpointsGroup.MapGet("airports", GetAirportsAsync);
+        flightsEndpointsGroup.MapGet("filtered", GetFilteredFlightsAsync);
     }
 
-    private static async Task<GetFlightByIdResult> GetFlightByIdAsync(
-        [FromQuery] Guid flightId,
-        FlightsDbContext dbContext)
-        => await dbContext.Flights.Where(f => f.Id == flightId).SingleOrDefaultAsync() is { } flight
-            ? TypedResults.Ok(FlightDto.CreateFromEntity(flight))
-            : TypedResults.NotFound();
-
-    private static async Task<Ok<IEnumerable<FlightDto>>> GetArrivingFlightsAsync(
-        [FromQuery] string atAirportIata,
+    private static async Task<Ok<IEnumerable<TableFlightDto>>> GetArrivingFlightsAsync(
+        [FromQuery] string atAirportIataCode,
         [FromQuery] DateTime? fromUtc,
-        [FromQuery] DateTime? tillUtc,
-        FlightsDbContext dbContext)
+        AirportDbContext dbContext)
     {
-        var flights = await dbContext.Flights
-            .Where(f => f.ArrivalAirport.Code == atAirportIata)
-            .Where(f => fromUtc == null || fromUtc.Value.AsUtc() <= f.ArrivalDateTimeUtc)
-            .Where(f => tillUtc == null || tillUtc.Value.AsUtc() >= f.ArrivalDateTimeUtc)
+       var arrivingFlights = await dbContext.Flights
+            .Where(f => f.ArrivalAirport.IataCode == atAirportIataCode)
+            .Where(f => f.ArrivalDateTimeUtc >= fromUtc)
+            .OrderBy(f => f.ArrivalDateTimeUtc)
+            .Take(10)
             .ToListAsync();
 
-        var dtos = flights.Select(FlightDto.CreateFromEntity);
-        return TypedResults.Ok(dtos);
-    }
-
-    private static async Task<Ok<IEnumerable<FlightDto>>> GetDepartingFlightsAsync(
-        [FromQuery] string fromAirportIata,
-        [FromQuery] DateTime? fromUtc,
-        [FromQuery] DateTime? tillUtc,
-        FlightsDbContext dbContext)
-    {
-        var flights = await dbContext.Flights
-            .Where(f => f.DepartureAirport.Code == fromAirportIata)
-            .Where(f => fromUtc == null || fromUtc.Value.AsUtc() <= f.DepartureDateTimeUtc)
-            .Where(f => tillUtc == null || tillUtc.Value.AsUtc() >= f.DepartureDateTimeUtc)
-            .ToListAsync();
-
-        var dtos = flights.Select(FlightDto.CreateFromEntity);
-        return TypedResults.Ok(dtos);
+       return TypedResults.Ok(arrivingFlights.Select(TableFlightDto.Map));
     }
     
-    private static async Task<Ok<IEnumerable<FlightDto>>> GetFlightsBySearchParameters(
-        [FromBody] FlightSearchParametersDto searchParameters,
-        FlightsDbContext dbContext)
+    private static async Task<Ok<IEnumerable<TableFlightDto>>> GetDepartingFlightsAsync(
+        [FromQuery] string atAirportIataCode,
+        [FromQuery] DateTime? fromUtc,
+        AirportDbContext dbContext)
     {
-        var fromUtc = searchParameters.FromUtc?.AsUtc() ?? DateTime.UtcNow;
-        var tillUtc = searchParameters.TillUtc?.AsUtc();
-        var flights = await dbContext.Flights
-            .Where(f => fromUtc <= f.DepartureDateTimeUtc)
-            .Where(f => tillUtc == null || tillUtc.Value.AsUtc() >= f.DepartureDateTimeUtc)
-            .Where(f => f.ArrivalAirportId == searchParameters.ArrivalAirportId)
-            .Where(f => f.DepartureAirportId == searchParameters.DepartureAirportId)
+        var departingFlights = await dbContext.Flights
+            .Where(f => f.DepartureAirport.IataCode == atAirportIataCode)
+            .Where(f => f.DepartureDateTimeUtc >= fromUtc)
             .OrderBy(f => f.DepartureDateTimeUtc)
+            .Take(10)
             .ToListAsync();
 
-        var dtos = flights.Select(FlightDto.CreateFromEntity);
-        return TypedResults.Ok(dtos);
+        return TypedResults.Ok(departingFlights.Select(TableFlightDto.Map));
     }
-}*/
+    
+    private static async Task<Ok<IEnumerable<TableFlightDto>>> GetFilteredFlightsAsync(
+        AirportDbContext dbContext,
+        [FromQuery] string departureAirportCode,
+        [FromQuery] string arrivalAirportCode,
+        [FromQuery] DateTime? departureDate,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var departureDateMin = departureDate.HasValue
+            ? departureDate.Value.ToUniversalTime().Date
+            : DateTime.UtcNow.Date;
+ 
+        var filteredFlights = await dbContext.Flights
+            .Where(f => f.DepartureAirport.IataCode == departureAirportCode)
+            .Where(f => f.ArrivalAirport.IataCode == arrivalAirportCode)
+            .Where(f => f.DepartureDateTimeUtc.Date >= departureDateMin)
+            .OrderBy(f => f.DepartureDateTimeUtc)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return TypedResults.Ok(filteredFlights.Select(TableFlightDto.Map));
+    }
+
+    private static async Task<Ok<IEnumerable<AirportDto>>> GetAirportsAsync(AirportDbContext dbContext)
+    {
+        var airports = await dbContext.Airports.OrderBy(a => a.IataCode).ToArrayAsync();
+        return TypedResults.Ok(airports.Select(AirportDto.Map));
+    }
+}
+
+public record TableFlightDto(
+    AirportDto ArrivalAirport,
+    GateDto ArrivalGate,
+    DateTime ArrivalDateTime,
+    AirportDto DepartureAirport,
+    GateDto DepartureGate, 
+    DateTime DepartureDateTime,
+    AirlineDto Airline,
+    string FlightNumber
+)
+{
+    public static TableFlightDto Map(Flight flight) =>
+        new(
+            ArrivalAirport: AirportDto.Map(flight.ArrivalAirport),
+            ArrivalGate: GateDto.Map(flight.ArrivalGate),
+            ArrivalDateTime: flight.ArrivalDateTimeUtc,
+            DepartureAirport: AirportDto.Map(flight.DepartureAirport),
+            DepartureGate: GateDto.Map(flight.DepartureGate),
+            DepartureDateTime: flight.DepartureDateTimeUtc,
+            Airline: AirlineDto.Map(flight.Airplane.Airline),
+            FlightNumber: $"{flight.Airplane.Airline.Code}-{flight.Id.ToString()[..6]}"
+        );
+}
+
+public record AirportDto(string City, string Code)
+{
+    public static AirportDto Map(Model.Flights.Airport airport) => new(City: airport.City, Code: airport.IataCode);
+}
+
+public record GateDto(string Terminal, string Name)
+{
+    public static GateDto Map(Gate gate) => new(Terminal: gate.Terminal, Name: gate.Name);
+}
+
+public record AirlineDto(string Title, string Code)
+{
+    public static AirlineDto Map(Airline airline) => new(Title: airline.Name, Code: airline.Code);
+}

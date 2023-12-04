@@ -7,12 +7,18 @@ export default {
     plugins: [require("daisyui")],
     daisyui: {
         themes: [
-            "dark",
             {
-                light: {
-                    ...require("daisyui/src/theming/themes")["light"],
-                    primary: "lightblue",
-                    secondary: "teal",
+                corporate: {
+                    ...require("daisyui/src/theming/themes")["corporate"],
+                    primary: '#3B82F6',
+                    'primary-content': '#ffffff',
+                },
+            },
+            {
+                business: {
+                    ...require("daisyui/src/theming/themes")["business"],
+                    primary: '#3B82F6',
+                    'primary-content': '#ffffff',
                 },
             },
         ],

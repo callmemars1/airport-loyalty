@@ -15,14 +15,14 @@ public class RowClass
         Title = title;
         ServiceLevel = serviceLevel;
         SeatsPerRow = seatsPerRow;
-        Rows = rows;
-        RowsStartOffset = rowsStartOffset;
-        ModelId = model.Id;
-        Model = model;
+        RowsCount = rows;
+        RowsOffset = rowsStartOffset;
+        AirplaneModelId = model.Id;
+        AirplaneModel = model;
     }
 
     // EF
-    private RowClass()
+    protected RowClass()
     {
     }
     
@@ -32,13 +32,13 @@ public class RowClass
     
     public short ServiceLevel { get; private set; }
     
+    public short RowsCount { get; private set; }
+    
+    public short RowsOffset { get; private set; }
+    
+    public int AirplaneModelId { get; private set; }
+    
     public short SeatsPerRow { get; private set; }
-    
-    public short Rows { get; private set; }
-    
-    public short RowsStartOffset { get; private set; }
-    
-    public int ModelId { get; private set; }
 
-    public AirplaneModel Model { get; private set; } = null!;
+    public virtual AirplaneModel AirplaneModel { get; private set; } = null!;
 }

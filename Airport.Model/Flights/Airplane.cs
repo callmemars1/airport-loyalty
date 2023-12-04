@@ -18,7 +18,7 @@ public class Airplane
     }
     
     // EF
-    private Airplane()
+    protected Airplane()
     {
     }
 
@@ -26,13 +26,13 @@ public class Airplane
 
     public short AirlineId { get; private set; }
 
-    public Airline Airline { get; private set; } = null!;
+    public virtual Airline Airline { get; private set; } = null!;
     
     public int ModelId { get; private set; }
 
-    public AirplaneModel Model { get; private set; } = null!;
+    public virtual AirplaneModel Model { get; private set; } = null!;
     
     public int AirportId { get; private set; }
 
-    public Airport Airport { get; private set; } = null!;
+    public virtual Airport Airport { get; private set; } = null!;
 }

@@ -2,28 +2,31 @@ namespace Airport.Model.Flights;
 
 public class Airport
 {
-    public Airport(int id, string code, string city, string country)
+    public Airport(int id, string iataCode, string city, string country, string name)
     {
         Id = id;
-        Code = code;
+        IataCode = iataCode;
         City = city;
         Country = country;
+        Name = name;
     }
 
     // EF
-    private Airport()
+    protected Airport()
     {
     }
 
     public int Id { get; private set; }
     
-    public string Code { get; private set; } = null!;
+    public string IataCode { get; private set; } = null!;
+
+    public string Name { get; private set; } = null!;
     
     public string City { get; private set; } = null!;
     
     public string Country { get; private set; } = null!;
 
-    public IEnumerable<Airplane> Airplanes { get; private set; } = new List<Airplane>();
+    public virtual IEnumerable<Airplane> Airplanes { get; private set; } = new List<Airplane>();
 
-    public IEnumerable<Gate> Gates { get; private set; } = new List<Gate>();
+    public virtual IEnumerable<Gate> Gates { get; private set; } = new List<Gate>();
 }

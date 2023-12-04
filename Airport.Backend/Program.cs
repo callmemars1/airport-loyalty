@@ -14,8 +14,19 @@ services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/auth/sign-in";
-        options.LogoutPath = "/api/auth/sign-out";
+        // Disable automatic redirection for authentication challenges (401 Unauthorized)
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        };
+
+        // Disable automatic redirection for forbidden access (403 Forbidden)
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        };
     });
 
 services.AddAuthorization();
@@ -50,5 +61,6 @@ app.UseAuthorization();
 
 var apiEndpoints = app.MapGroup("/api");
 apiEndpoints.RegisterAuthEndpoints();
+apiEndpoints.RegisterFlightsEndpoints();
 
 app.Run();

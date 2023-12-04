@@ -10,7 +10,7 @@ public class Airline
     }
 
     // EF
-    private Airline()
+    protected Airline()
     {
     }
 

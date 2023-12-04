@@ -89,18 +89,18 @@ SELECT generate_gates(1, 5, 2, 6);
 
 
 -- Модели самолетов
-INSERT INTO airplane_models (title, brand)
+INSERT INTO airplane_models (title, manufacturer)
 VALUES
-    ('Boeing 737-800', 'Boeing'),
-    ('Boeing 777-300ER', 'Boeing'),
-    ('Airbus A320-200', 'Airbus'),
-    ('Airbus A330-300', 'Airbus'),
-    ('Boeing 787-9', 'Boeing'),
-    ('Airbus A350-900', 'Airbus'),
-    ('Boeing 767-300ER', 'Boeing'),
-    ('Airbus A319-100', 'Airbus'),
-    ('Boeing 747-8', 'Boeing'),
-    ('Airbus A380-800', 'Airbus')
+    ('737-800', 'Boeing'),
+    ('777-300ER', 'Boeing'),
+    ('A320-200', 'Airbus'),
+    ('A330-300', 'Airbus'),
+    ('787-9', 'Boeing'),
+    ('A350-900', 'Airbus'),
+    ('767-300ER', 'Boeing'),
+    ('A319-100', 'Airbus'),
+    ('747-8', 'Boeing'),
+    ('A380-800', 'Airbus')
 ;
 
 

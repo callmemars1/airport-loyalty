@@ -1,11 +1,13 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
+    
+    export let submitEventName: string
 
     const dispatch = createEventDispatcher();
 
     function handleSubmit(event) {
-        event.preventDefault(); // Prevent the default form submission behavior
-        dispatch('formSubmit', event); // Dispatch the custom 'submit' event with the event object
+        event.preventDefault();
+        dispatch(submitEventName, event); // Dispatch the custom 'submit' event with the event object
     }
 
     export let title: String = "No title.";
