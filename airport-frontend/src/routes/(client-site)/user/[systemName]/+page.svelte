@@ -1,7 +1,8 @@
 <script lang="ts">
-    import LabeledFormInput from '$lib/components/LabeledFormInput.svelte'
+    import Authorized from '$lib/components/Authorized.svelte'
 </script>
 
+<Authorized />
 
 <div class="divider divider">Данные пользователя</div>
 <div class="flex flex-col content-center justify-center">

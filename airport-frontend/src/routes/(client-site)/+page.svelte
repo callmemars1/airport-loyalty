@@ -3,8 +3,8 @@
     import DepartingArrivingFlightsTable from '$lib/components/DepartingArrivingFlightsTable.svelte';
     import FlightsSearch from '$lib/components/FlightsSearch.svelte';
 
-    let flightsLoading = true; // Preloader state
-    let searchLoading = true; // Preloader state
+    let flightsLoading = true;
+    let searchLoading = true;
 </script>
 
 <main class="px-20 space-y-10">

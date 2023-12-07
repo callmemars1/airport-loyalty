@@ -3,6 +3,8 @@
     import LabeledFormInput from "$lib/components/LabeledFormInput.svelte"
     import Preloader from '$lib/components/Preloader.svelte'
     import ErrorsList from '$lib/components/ErrorsList.svelte'
+    import {signIn as signInApiCall} from '$lib/scripts/auth'
+    import { goto } from '$app/navigation'
 
     let login: String = ""
     let password: String = ""
@@ -10,26 +12,16 @@
 
     let submitPromise: Promise
 
-    const signIn = async (data) => {
-        const response = await fetch('/api/auth/sign-in', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data),
-        });
+    const signIn = async () => {
+        errors = await signInApiCall(login, password)
 
-        if (response.status === 404) {
-            const errorData = await response.json();
-            console.log(errorData)
-            errors = errorData.errors;
-        } else if (response.status === 200) {
-            window.location.href = '/'
-        } else {
-            throw new Error(response.status)
+        if (errors.length === 0) {
+            await goto('/')
         }
     };
 
     const handleSubmit = async () => {
-        await signIn({login, password});
+        await signIn();
     };
 
 </script>
