@@ -1,22 +1,47 @@
 namespace Airport.Model.Products;
 
-public abstract class PurchasedProduct
+public abstract class PurchasedProductBase
 {
-    protected PurchasedProduct(
+    protected PurchasedProductBase(
         Guid id,
-        Product product,
-        Transaction transaction,
-        PriceChange actualPriceChange,
+        Purchase purchase,
+        PriceChange actualPrice,
         short? quantity = null)
     {
         Id = id;
-        Product = product;
-        ProductId = product.Id;
         Quantity = quantity;
-        Transaction = transaction;
-        TransactionId = transaction.Id;
-        ActualPriceChange = actualPriceChange;
-        ActualPriceChangeId = actualPriceChange.Id;
+        Purchase = purchase;
+        ActualPrice = actualPrice;
+    }
+    
+    // EF
+    protected PurchasedProductBase()
+    {
+        
+    }
+    
+    public Guid Id { get; private set; }
+    
+    public short? Quantity { get; private set; }
+    
+    public virtual Purchase Purchase { get; private set; } = null!;
+
+    public virtual PriceChange ActualPrice { get; private set; } = null!;
+    
+    public abstract string Discriminator { get; protected set; }
+}
+
+public abstract class PurchasedProduct<TProduct> : PurchasedProductBase
+    where TProduct : Product
+{
+    protected PurchasedProduct(
+        Guid id,
+        Purchase purchase,
+        PriceChange actualPriceChange,
+        TProduct product,
+        short? quantity = null) : base(id, purchase, actualPriceChange, quantity)
+    {
+        Product = product;
     }
     
     // EF
@@ -24,21 +49,5 @@ public abstract class PurchasedProduct
     {
     }
 
-    public Guid Id { get; private set; }
-    
-    public Product Product { get; private set; }
-    
-    public Guid ProductId { get; private set; }
-    
-    public short? Quantity { get; private set; }
-    
-    public Guid TransactionId { get; private set; }
-
-    public Transaction Transaction { get; private set; } = null!;
-
-    public PriceChange ActualPriceChange { get; private set; } = null!;
-    
-    public Guid ActualPriceChangeId { get; private set; }
-    
-    public abstract string Discriminator { get; }
+    public virtual TProduct Product { get; private set; }
 }

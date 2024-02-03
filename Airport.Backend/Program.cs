@@ -3,6 +3,7 @@ using Airport.Backend.Utils;
 using Airport.Model;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,22 +11,36 @@ var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 var services = builder.Services;
 
-services
-    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(@"data-protection-keys"));
+
+services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
     .AddCookie(options =>
     {
-        // Disable automatic redirection for authentication challenges (401 Unauthorized)
-        options.Events.OnRedirectToLogin = context =>
-        {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return Task.CompletedTask;
-        };
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.LoginPath = PathString.Empty; // Disable redirects
+        options.LogoutPath = PathString.Empty; // Disable redirects
+        options.AccessDeniedPath = PathString.Empty; // Disable redirects
 
-        // Disable automatic redirection for forbidden access (403 Forbidden)
-        options.Events.OnRedirectToAccessDenied = context =>
+        // Handle redirects manually
+        options.Events = new CookieAuthenticationEvents
         {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return Task.CompletedTask;
+            OnRedirectToLogin = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            },
+            OnRedirectToAccessDenied = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -39,7 +54,11 @@ services.AddDbContext<AirportDbContext>(
 
 services.AddTransient<IPasswordHasher, HMACSHA256PasswordHasher>();
 
-services.AddScoped<IValidator<SignUpRequest>, SignUpRequestValidator>();
+services.AddScoped<IValidator<CreateUserRequest>, CreateUserRequestValidator>();
+services.AddScoped<IValidator<CreateStaffRequest>, CreateStaffRequestValidator>();
+services.AddScoped<IValidator<CreateFlightRequest>, CreateFlightRequestValidator>();
+services.AddScoped<IValidator<CreateTicketProductRequest>, CreateTicketProductRequestValidator>();
+services.AddScoped<IValidator<UpdateUserRequest>, UpdateUserRequestValidator>();
 
 services
     .AddEndpointsApiExplorer()
@@ -62,5 +81,8 @@ app.UseAuthorization();
 var apiEndpoints = app.MapGroup("/api");
 apiEndpoints.RegisterAuthEndpoints();
 apiEndpoints.RegisterFlightsEndpoints();
+apiEndpoints.RegisterUserEndpoints();
+apiEndpoints.RegisterRetailEndpoints();
+apiEndpoints.RegisterStatisticsEndpoints();
 
 app.Run();

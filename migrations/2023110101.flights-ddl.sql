@@ -1,7 +1,7 @@
 CREATE
-EXTENSION IF NOT EXISTS "pgcrypto";
+    EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE
-EXTENSION IF NOT EXISTS "uuid-ossp";
+    EXTENSION IF NOT EXISTS "uuid-ossp";
 
 create table airports
 (
@@ -63,6 +63,8 @@ create table flights
     arrival_airport_id      int       not null references airports (id),
     arrival_date_time_utc   timestamp not null,
     arrival_gate_id         int       not null references gates (id),
-    airplane_id             int       not null references airplanes (id)
+    airplane_id             int       not null references airplanes (id),
+    flight_number           text      not null unique
 );
 
+CREATE INDEX uix_flights_flight_number ON flights (flight_number);

@@ -13,7 +13,7 @@
     export let title: String = "No title.";
 </script>
 
-<form class="bg-base-200 shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full md:w-1/2 lg:w-1/3" 
+<form class="shadow-primary/25 shadow-xl border rounded px-8 pt-6 pb-8 mb-4 w-full md:w-1/2 lg:w-1/3" 
       novalidate 
       on:submit={handleSubmit}
 >

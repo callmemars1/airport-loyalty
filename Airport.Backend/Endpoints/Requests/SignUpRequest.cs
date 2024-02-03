@@ -1,10 +1,11 @@
 using Airport.Model;
+using Airport.Model.Users;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace Airport.Backend.Endpoints;
 
-public record SignUpRequest(
+public record CreateUserRequest(
     string Name,
     string Surname,
     string? Patronymic,
@@ -13,11 +14,26 @@ public record SignUpRequest(
     string Password
 );
 
-public class SignUpRequestValidator : AbstractValidator<SignUpRequest>
+public record SignUpRequest(string Name, string Surname, string? Patronymic, string PassportNumber, string Login, string Password) 
+    : CreateUserRequest(Name, Surname, Patronymic, PassportNumber, Login, Password);
+
+public record CreateStaffRequest(
+        string Name,
+        string Surname,
+        string? Patronymic,
+        string PassportNumber,
+        string Login,
+        string Password,
+        string Role)
+    : CreateUserRequest(Name, Surname, Patronymic, PassportNumber, Login, Password)
+{
+};
+
+public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 {
     private readonly AirportDbContext _dbContext;
 
-    public SignUpRequestValidator(AirportDbContext dbContext)
+    public CreateUserRequestValidator(AirportDbContext dbContext, IValidator<CreateStaffRequest> staffValidator)
     {
         _dbContext = dbContext;
 
@@ -50,17 +66,30 @@ public class SignUpRequestValidator : AbstractValidator<SignUpRequest>
                 "Поле должно содержать только буквы, без цифр и специальных символов, допустимы латинские и кириллические буквы.");
 
         RuleFor(r => r.Patronymic)
-            .MinimumLength(2).When(p => p is not null).WithMessage("Отчество не должно быть короче 2 символов.")
-            .MaximumLength(512).When(p => p is not null).WithMessage("Отчество не должно быть длинее 128 символов.")
-            .Matches("^[a-zA-Zа-яА-Я]+$").When(p => p is not null).WithMessage(
+            .MinimumLength(2).When(p => p.Patronymic is not null or "").WithMessage("Отчество не должно быть короче 2 символов.")
+            .MaximumLength(512).When(p =>  p.Patronymic is not null or "").WithMessage("Отчество не должно быть длинее 128 символов.")
+            .Matches("^[a-zA-Zа-яА-Я]+$").When(p => p.Patronymic is not null or "").WithMessage(
                 "Поле должно содержать только буквы, без цифр и специальных символов, допустимы латинские и кириллические буквы.");
 
         RuleFor(r => r.PassportNumber)
             .NotNull()
             .Matches(@"^\d{4}\s\d{6}$").WithMessage(
                 "Должно быть ровно 10 цифр, разделённые пробелом после четвёртой цифры.");
+        
+        RuleFor(r => r).SetInheritanceValidator(v => v.Add(staffValidator));
     }
 
     private async Task<bool> LoginNotExist(string login, CancellationToken cancellationToken) =>
         await _dbContext.Users.AllAsync(u => u.Login != login, cancellationToken: cancellationToken);
+}
+
+public class CreateStaffRequestValidator : AbstractValidator<CreateStaffRequest>
+{
+    public CreateStaffRequestValidator(AirportDbContext dbContext)
+    {
+        RuleFor(r => r.Role)
+            .NotNull().WithMessage("""Поле "Роль" не заполнено!""")
+            .Must(r => Enum.TryParse(r, out Roles _))
+            .WithMessage("Роль не найдена!");
+    }
 }

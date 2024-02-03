@@ -3,7 +3,7 @@ namespace Airport.Model.Flights;
 public class RowClass
 {
     public RowClass(
-        Guid id, 
+        int id, 
         string title,
         short serviceLevel,
         short seatsPerRow, 
@@ -26,7 +26,7 @@ public class RowClass
     {
     }
     
-    public Guid Id { get; private set; }
+    public int Id { get; private set; }
     
     public string Title { get; private set; } = null!;
     
@@ -41,4 +41,6 @@ public class RowClass
     public short SeatsPerRow { get; private set; }
 
     public virtual AirplaneModel AirplaneModel { get; private set; } = null!;
+
+    public int PlacesCount => RowsCount * SeatsPerRow;
 }

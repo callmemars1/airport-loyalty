@@ -24,6 +24,8 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"apexcharts": "^3.44.2",
+		"svelte-apexcharts": "^1.0.2",
 		"svelte-routing": "^2.9.0"
 	}
 }

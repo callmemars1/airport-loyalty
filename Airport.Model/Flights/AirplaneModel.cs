@@ -20,5 +20,5 @@ public class AirplaneModel
 
     public string Manufacturer { get; private set; } = null!;
 
-    public virtual IEnumerable<RowClass> RowClasses { get; private set; } = Array.Empty<RowClass>();
+    public virtual IEnumerable<RowClass> RowClasses { get; private set; } = new List<RowClass>();
 }

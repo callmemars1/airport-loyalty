@@ -1,4 +1,5 @@
 using Airport.Model.Flights;
+using Airport.Model.Users;
 
 namespace Airport.Model.Products;
 
@@ -7,11 +8,11 @@ public class TicketProduct : Product
     public TicketProduct(
         Guid id,
         string title,
-        string description,
+        User createdBy,
         Flight flight,
         RowClass serviceClass,
         long? quantity = null) 
-        : base(id, title, description, quantity)
+        : base(id, title, createdBy, quantity)
     {
         FlightId = flight.Id;
         Flight = flight;
@@ -23,11 +24,11 @@ public class TicketProduct : Product
     {
     }
     
-    public override string Discriminator { get; } = "TicketProduct";
+    public override string Discriminator { get; protected set; } = "TicketProduct";
     
     public Guid FlightId { get; private set; }
     
-    public Flight Flight { get; private set; }
+    public virtual Flight Flight { get; private set; }
     
-    public RowClass ServiceClass { get; private set; }
+    public virtual RowClass ServiceClass { get; private set; }
 }

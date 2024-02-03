@@ -137,8 +137,6 @@ $$ LANGUAGE plpgsql;
 -- Call the function to generate rows classes for airplane models
 SELECT generate_rows_classes();
 
-SELECT generate_rows_classes();
-
 -- Генерируем самолеты
 CREATE OR REPLACE FUNCTION generate_airplanes()
     RETURNS VOID AS $$
@@ -174,15 +172,19 @@ SELECT generate_airplanes();
 
 
 -- Генерируем полеты
+CREATE SEQUENCE temp_flight_number_seq START 1;
+
 CREATE OR REPLACE FUNCTION generate_flights()
     RETURNS VOID AS $$
 DECLARE
     r_departure RECORD;
     r_arrival RECORD;
     r_airplane RECORD;
+    r_airplane_airline RECORD;
     r_flight RECORD;
     r_departure_gate RECORD;
     r_arrival_gate RECORD;
+    flight_number  TEXT;
     departure_date TIMESTAMP;
     arrival_date TIMESTAMP;
     flight_count INTEGER;
@@ -204,9 +206,13 @@ BEGIN
 
                     SELECT INTO r_departure_gate * FROM gates WHERE airport_id = r_departure.id OFFSET floor(random() * (SELECT COUNT(*) FROM gates WHERE airport_id = r_departure.id)) LIMIT 1;
                     SELECT INTO r_arrival_gate * FROM gates WHERE airport_id = r_arrival.id OFFSET floor(random() * (SELECT COUNT(*) FROM gates WHERE airport_id = r_arrival.id)) LIMIT 1;
-
-                    INSERT INTO flights (departure_airport_id, departure_date_time_utc, arrival_airport_id, arrival_date_time_utc, airplane_id, departure_gate_id, arrival_gate_id)
-                    VALUES (r_departure.id, departure_date, r_arrival.id, arrival_date, r_airplane.id, r_departure_gate.id, r_arrival_gate.id);
+                    SELECT INTO r_airplane_airline * FROM airlines a WHERE a.id = r_airplane.airline_id LIMIT 1;
+                    
+                    
+                    SELECT INTO flight_number * FROM (SELECT r_airplane_airline.code || LPAD(nextval('temp_flight_number_seq')::TEXT, 6, '0')) AS generated_flight;
+                    
+                    INSERT INTO flights (departure_airport_id, departure_date_time_utc, arrival_airport_id, arrival_date_time_utc, airplane_id, departure_gate_id, arrival_gate_id, flight_number)
+                    VALUES (r_departure.id, departure_date, r_arrival.id, arrival_date, r_airplane.id, r_departure_gate.id, r_arrival_gate.id, flight_number);
                 END LOOP;
         END LOOP;
 END;

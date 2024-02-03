@@ -1,44 +1,70 @@
 <script lang="ts">
-    import {onMount} from 'svelte';
+    import {onMount} from "svelte";
+    import {formatDateTime} from "$lib/scripts/utils"
+    import {getFlightsBySearchParameters, getFlightByNumber, getAirports, PageSize} from "$lib/scripts/api"
 
     let flights = [];
     export let flightsLoading = true;
-    export let airportsLoading = true;
+
+    let flightNumber: string = ''
+
+    $: searchByFlightNumber = flightNumber.length > 0
+
     let pageNumber = 1;
-    const pageSize = 10;
     let departureAirportCode = '';
     let arrivalAirportCode = '';
-    let departureDate = '';
+    let departureDateMin = '';
+    let departureDateMax = '';
 
-    // Dummy airports array - replace this with your actual API call later
-    let airports = [ ];
+    $: searchByParameters =
+        departureAirportCode.length > 0
+        ||  arrivalAirportCode.length > 0
+        ||  departureDateMin.length > 0
+        ||  departureDateMax.length > 0
+
+    $: cantSearchForFlightByNumber =
+        searchByFlightNumber && (!flightNumber || flightNumber.length === 0)
+
+    $: cantSearchForFlightByParams =
+        searchByParameters && (
+            !departureAirportCode || departureAirportCode.length === 0
+            ||  !arrivalAirportCode || arrivalAirportCode.length === 0
+            ||  arrivalAirportCode === departureAirportCode
+            ||  (departureDateMin && departureDateMax && departureDateMin >= departureDateMax))
+
+    $: cantSearch =
+        (!searchByParameters && !searchByFlightNumber)
+        || cantSearchForFlightByParams
+        || cantSearchForFlightByNumber
+
+
+    const clearAllFields = () => {
+        departureAirportCode = '';
+        arrivalAirportCode = '';
+        departureDateMin = '';
+        departureDateMax = '';
+        flightNumber = ''
+    }
+
+
+    let airports = [];
+    export let airportsLoading = true;
 
     async function fetchFlights() {
         flightsLoading = true;
-        try {
-            const response = await fetch(
-                `/api/flights/filtered?departureAirportCode=${departureAirportCode}&arrivalAirportCode=${arrivalAirportCode}${departureDate ? '&departureDate='+departureDate : ''}&pageNumber=${pageNumber}&pageSize=${pageSize}`
-            );
-            const data = await response.json();
-            flights = data;
-            // Update totalFlights if your API provides it
-        } catch (error) {
-            console.error('Failed to fetch flights:', error);
-        }
+        if (searchByParameters)
+            flights = await getFlightsBySearchParameters(departureAirportCode, arrivalAirportCode, pageNumber, departureDateMin)
+        else
+            flights = await getFlightByNumber(flightNumber)
+
+        console.log(flightNumber)
+
         flightsLoading = false;
     }
 
     async function fetchAirports() {
         airportsLoading = true;
-        try {
-            const response = await fetch(
-                `/api/flights/airports`
-            );
-            const data = await response.json();
-            airports = data;
-        } catch (error) {
-            console.error('Failed to fetch airports:', error);
-        }
+        airports = await getAirports();
         airportsLoading = false;
     }
 
@@ -46,25 +72,34 @@
         await fetchAirports()
     });
 
-    let formatTwoDigit = (num: number) => {
-        if (num % 10 === num)
-            return `0${num}`
-        return num.toString()
-    }
-
-    let formatDateTime = (date: Date) => {
-        return `${formatTwoDigit(date.getHours())}:${formatTwoDigit(date.getMinutes())} — ${formatTwoDigit(date.getDate())}.${formatTwoDigit(date.getMonth() + 1)}.${date.getFullYear()}`
-    }
-
 </script>
 
 <div class="flex flex-col space-y-5 pb-5">
+
+    <div class="flex flex-row w-full">
+        <label class="form-control w-full">
+            <div class="label">
+                Номер рейса
+            </div>
+            <input
+                    type="text" class="input input-bordered w-full" bind:value={flightNumber}
+                    disabled={searchByParameters}
+            >
+        </label>
+    </div>
+
+    <div class="divider">или</div>
+
     <div class="flex flex-row space-x-4 mb-4 justify-between">
+
         <label class="form-control w-full max-w-xs">
             <div class="label">
                 <span class="label-text">Откуда</span>
             </div>
-            <select class="select select-bordered" bind:value={departureAirportCode}>
+            <select
+                    class="select select-bordered" bind:value={departureAirportCode}
+                    disabled={searchByFlightNumber}
+            >
                 {#each airports as airport}
                     <option value={airport.code}>
                         <span class="font-mono text-primary/75">[{airport.code}]</span>
@@ -78,7 +113,10 @@
             <div class="label">
                 <span class="label-text">Куда</span>
             </div>
-            <select class="select select-bordered w-full" bind:value={arrivalAirportCode}>
+            <select
+                    class="select select-bordered w-full" bind:value={arrivalAirportCode}
+                    disabled={searchByFlightNumber}
+            >
                 {#each airports as airport}
                     <option value={airport.code} class="font-mono">
                         [{airport.code}]
@@ -90,19 +128,42 @@
 
         <div class="form-control w-full max-w-xs">
             <label class="label">
-                <span class="label-text">Когда</span>
+                <span class="label-text">От</span>
             </label>
-            <input type="date" class="input input-bordered w-full" bind:value={departureDate}/>
+            <input
+                    type="date" class="input input-bordered w-full" bind:value={departureDateMin}
+                    disabled={searchByFlightNumber}
+            />
         </div>
 
-        <div class="form-control w-full max-w-xs h-min self-end">
-            <button class="btn btn-primary" on:click={fetchFlights}
-                    disabled={!departureAirportCode || !arrivalAirportCode}
-            >
-                Поиск
-            </button>
+
+        <div class="form-control w-full max-w-xs">
+            <label class="label">
+                <span class="label-text">До</span>
+            </label>
+            <input
+                    type="date" class="input input-bordered w-full" bind:value={departureDateMax}
+                    disabled={searchByFlightNumber}
+            />
         </div>
+
     </div>
+
+    <div class="flex flex-row w-full space-x-4">
+        <button class="btn btn-accent flex-1" disabled={cantSearch} on:click={async () => {
+                pageNumber = 1
+                await fetchFlights()
+            }}>
+            Поиск
+        </button>
+        <button class="btn btn-outline btn-warning flex-none" on:click={clearAllFields}
+        >
+            Очистить
+        </button>
+    </div>
+
+    <br>
+
     <div class="grid overflow-hidden">
 
         <div class="overflow-x-auto space-y-5 flex flex-col justify-center">
@@ -138,9 +199,9 @@
                 {/if}
                 </tbody>
             </table>
-            
+
             <div class="join self-center">
-                <button 
+                <button
                         class="join-item btn"
                         on:click={() => {
                             pageNumber = pageNumber - 1
@@ -157,7 +218,7 @@
                             pageNumber = pageNumber + 1
                             fetchFlights()
                         }}
-                        disabled={flights.length - pageSize < 0}
+                        disabled={flights.length - PageSize < 0}
                 >
                     »
                 </button>

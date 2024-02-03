@@ -1,4 +1,9 @@
-<footer class="footer footer-center p-4 bg-base-300 text-base-content ">
+<script>
+    export let userAdmin;
+    $: console.log(userAdmin)
+</script>
+
+<footer class="footer footer-center p-4 border shadow-2xl shadow-primary text-base-content ">
     <div class="flex flex-col">
         <aside class="flex flex-row items-center">
             <label class="swap swap-rotate text-primary p-5">
@@ -18,6 +23,8 @@
             </label>
             <p>Copyright © 2023 - All right reserved by Vnukovo</p>
         </aside>
-        <a href="/admin" class="font-xxs link">админ-панель</a>
+        {#if userAdmin}
+            <a href="/admin" class="font-xxs link">админ-панель</a>
+        {/if}
     </div>
 </footer>

@@ -4,7 +4,9 @@ services:
   db:
     image: postgres:16.0
     restart: always
-    env_file:
-      - ../secrets/.env
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=username
+      - POSTGRES_DB=eventool
     ports:
       - "5432:5432"

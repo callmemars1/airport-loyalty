@@ -3,7 +3,7 @@
 </script>
 
 <div class="flex flex-col">
-    {#each errors as error}
+    {#each errors as error (error.toString())}
         <span class="mt-2 text-sm text-red-500">
             — {error}
         </span>

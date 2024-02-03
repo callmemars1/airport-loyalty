@@ -1,0 +1,12 @@
+[
+  {"Name":"John","Surname":"Doe","Patronymic":"James","PassportNumber":"0000 000001","Login":"johndoe","Password":"Admin1234","Role":"Admin"},
+  {"Name":"Jane","Surname":"Smith","Patronymic":"Ann","PassportNumber":"0000 000002","Login":"janesmith","Password":"Admin1234","Role":"Editor"},
+  {"Name":"Robert","Surname":"Johnson","Patronymic":"Lee","PassportNumber":"0000 000003","Login":"robertjohnson","Password":"Admin1234","Role":"Client"},
+  {"Name":"Michael","Surname":"Williams","Patronymic":"Andrew","PassportNumber":"0000 000004","Login":"michaelwilliams","Password":"Admin1234","Role":"Analyst"},
+  {"Name":"Sarah","Surname":"Jones","Patronymic":null,"PassportNumber":"0000 000005","Login":"sarahjones","Password":"Admin1234","Role":"Admin"},
+  {"Name":"David","Surname":"Brown","Patronymic":"Paul","PassportNumber":"0000 000006","Login":"davidbrown","Password":"Admin1234","Role":"Editor"},
+  {"Name":"Emily","Surname":"Davis","Patronymic":"Marie","PassportNumber":"0000 000007","Login":"emilydavis","Password":"Admin1234","Role":"Client"},
+  {"Name":"James","Surname":"Miller","Patronymic":"Peter","PassportNumber":"0000 000008","Login":"jamesmiller","Password":"Admin1234","Role":"Analyst"},
+  {"Name":"Jessica","Surname":"Wilson","Patronymic":"Lynn","PassportNumber":"0000 000009","Login":"jessicawilson","Password":"Admin1234","Role":"Admin"},
+  {"Name":"Brian","Surname":"Moore","Patronymic":"Patrick","PassportNumber":"0000 000010","Login":"brianmoore","Password":"Admin1234","Role":"Editor"}
+]

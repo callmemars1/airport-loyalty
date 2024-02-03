@@ -1,21 +1,21 @@
 namespace Airport.Model.Products;
 
-class PurchasedTicket : PurchasedProduct
+public class PurchasedTicket : PurchasedProduct<TicketProduct>
 {
     public PurchasedTicket(
         Guid id,
-        Product product,
-        Transaction transaction,
-        PriceChange actualPriceChange, 
+        TicketProduct product,
+        Purchase purchase,
+        PriceChange actualPriceChange,
         string ticketIdentifier,
         short seatNumber,
         short? quantity = null) : base(id,
-        product,
-        transaction,
+        purchase,
         actualPriceChange,
+        product,
         quantity)
     {
-        TicketIdentifier = ticketIdentifier;
+        TicketNumber = ticketIdentifier;
         SeatNumber = seatNumber;
     }
 
@@ -24,9 +24,9 @@ class PurchasedTicket : PurchasedProduct
     {
     }
 
-    public override string Discriminator { get; } = "Ticket";
+    public override string Discriminator { get; protected set; } = "Ticket";
 
-    public string TicketIdentifier { get; private set; } = null!;
-    
+    public string TicketNumber { get; private set; } = null!;
+
     public short SeatNumber { get; private set; }
 }

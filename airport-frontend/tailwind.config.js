@@ -12,6 +12,10 @@ export default {
                     ...require("daisyui/src/theming/themes")["corporate"],
                     primary: '#3B82F6',
                     'primary-content': '#ffffff',
+                    'accent-content': '#ffffff',
+                    'success-content': '#ffffff',
+                    'warning-content': '#ffffff',
+                    'error-content': '#ffffff'
                 },
             },
             {
@@ -19,6 +23,9 @@ export default {
                     ...require("daisyui/src/theming/themes")["business"],
                     primary: '#3B82F6',
                     'primary-content': '#ffffff',
+                    'accent-content': '#ffffff',
+                    'success-content': '#ffffff',
+                    'warning-content': '#ffffff'
                 },
             },
         ],

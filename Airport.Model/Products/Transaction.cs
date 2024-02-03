@@ -2,9 +2,9 @@ using Airport.Model.Users;
 
 namespace Airport.Model.Products;
 
-public class Transaction
+public class Purchase
 {
-    public Transaction(Guid id, DateTime createdAt, User user, decimal totalPrice)
+    public Purchase(Guid id, DateTime createdAt, User user, double totalPrice)
     {
         Id = id;
         CreatedAt = createdAt;
@@ -14,7 +14,7 @@ public class Transaction
     }
 
     // EF
-    protected Transaction()
+    protected Purchase()
     {
     }
 
@@ -22,11 +22,11 @@ public class Transaction
     
     public DateTime CreatedAt { get; private set; }
 
-    public User User { get; private set; } = null!;
+    public virtual User User { get; private set; } = null!;
     
     public Guid UserId { get; private set; }
 
-    public IEnumerable<PurchasedProduct> PurchasedProducts { get; private set; } = new List<PurchasedProduct>();
+    public virtual IEnumerable<PurchasedProductBase> PurchasedProducts { get; private set; } = new List<PurchasedProductBase>();
     
-    public decimal TotalPrice { get; private set; }
+    public double TotalPrice { get; private set; }
 }

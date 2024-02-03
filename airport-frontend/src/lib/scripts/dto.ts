@@ -23,3 +23,13 @@ export interface TableFlightDto {
     Airline: AirlineDto;
     FlightNumber: string;
 }
+
+export interface UserDto {
+    id: string; // Assuming GUIDs are represented as strings in TypeScript
+    name: string;
+    surname: string;
+    patronymic: string | null; // or undefined, depending on your use case
+    passportNumber: string;
+    createdAt: Date; // or string, if you prefer to work with date as ISO string
+    login: string;
+}

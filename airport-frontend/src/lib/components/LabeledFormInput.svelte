@@ -8,7 +8,7 @@
     export let value: String;
     export let errors: string[];
     export let required: Boolean = false;
-
+    
     export let formatter = (e: InputEvent) => {  };
     
     const ref = (node: HTMLInputElement) => {

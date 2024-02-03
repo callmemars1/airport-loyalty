@@ -1,49 +1,24 @@
 <script lang="ts">
     import {onMount} from "svelte";
+    import {getUsers, PageSize, deleteUserById} from "$lib/scripts/api";
+    import TrashIcon from "$lib/components/TrashIcon.svelte";
+    import EditLogo from "$lib/components/EditLogo.svelte";
+    import CreateUserModal from '$lib/components/CreateUserModal.svelte'
+    import UpdateUserModal from '$lib/components/UpdateUserModal.svelte'
 
-    let flights = [];
-    export let flightsLoading = true;
-    export let airportsLoading = true;
-    let pageNumber = 1;
-    const pageSize = 10;
-    let departureAirportCode = '';
-    let arrivalAirportCode = '';
-    let departureDate = '';
+    let users = [];
+    export let usersLoading = true;
 
-    // Dummy airports array - replace this with your actual API call later
-    let airports = [];
+    let pageNumber = 1
 
-    async function fetchFlights() {
-        flightsLoading = true;
-        try {
-            const response = await fetch(
-                `/api/flights/filtered?departureAirportCode=${departureAirportCode}&arrivalAirportCode=${arrivalAirportCode}${departureDate ? '&departureDate=' + departureDate : ''}&pageNumber=${pageNumber}&pageSize=${pageSize}`
-            );
-            const data = await response.json();
-            flights = data;
-            // Update totalFlights if your API provides it
-        } catch (error) {
-            console.error('Failed to fetch flights:', error);
-        }
-        flightsLoading = false;
-    }
-
-    async function fetchAirports() {
-        airportsLoading = true;
-        try {
-            const response = await fetch(
-                `/api/flights/airports`
-            );
-            const data = await response.json();
-            airports = data;
-        } catch (error) {
-            console.error('Failed to fetch airports:', error);
-        }
-        airportsLoading = false;
+    async function fetchUsers() {
+        usersLoading = true;
+        users = await getUsers(pageNumber)
+        usersLoading = false;
     }
 
     onMount(async () => {
-        await fetchAirports()
+        await fetchUsers()
     });
 
     let formatTwoDigit = (num: number) => {
@@ -55,122 +30,182 @@
     let formatDateTime = (date: Date) => {
         return `${formatTwoDigit(date.getHours())}:${formatTwoDigit(date.getMinutes())} — ${formatTwoDigit(date.getDate())}.${formatTwoDigit(date.getMonth() + 1)}.${date.getFullYear()}`
     }
+
+
+    let file;
+    let errors = []
+
+    async function uploadFile() {
+        if (!file) {
+            alert('Please select a file.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/api/users/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.status === 400) {
+                let body = await response.json()
+                errors = body.errors
+                console.log(errors)
+            } else if (!response.ok) {
+                throw new Error(`Server responded with ${response.status}`);
+            }
+
+            await fetchUsers()
+        } catch (err) {
+            console.error('Error uploading file:', err);
+            alert('Error uploading file.');
+        }
+    }
+
+    function handleFileChange(event) {
+        const files = event.target.files;
+        if (files.length > 0) {
+            const selectedFile = files[0];
+            if (selectedFile.type === "application/json") {
+                file = selectedFile;
+            } else {
+                alert('Please select a JSON file.');
+                file = null;
+            }
+        }
+    }
 </script>
 
+<CreateUserModal modalId="create_user_modal" onCreate={() => fetchUsers()}/>
 
 <div class="flex flex-col space-y-10">
-<div class="flex flex-col space-y-5">
-    <h1 class="text-2xl font-bold">Клиенты</h1>
-    <p>Тут вы можете просматривать информацию о клиентах, а также редактировать их.</p>
-</div>
-
-<div class="divider">Список клиентов</div>
-
-<div class="flex flex-col space-y-5 pb-5">
-    <div class="flex flex-row space-x-4 mb-4 justify-between">
-        <label class="form-control w-full max-w-xs">
-            <div class="label">
-                <span class="label-text">Откуда</span>
+    <div class="flex flex-col space-y-5">
+        <div class="flex flex-row justify-between">
+            <div class="flex flex-col space-y-5">
+                <h1 class="text-2xl font-bold">Пользователи</h1>
+                <p>Тут вы можете просматривать информацию о пользователях, а также редактировать их.</p>
             </div>
-            <select class="select select-bordered" bind:value={departureAirportCode}>
-                {#each airports as airport}
-                    <option value={airport.code}>
-                        <span class="font-mono text-primary/75">[{airport.code}]</span>
-                        {airport.city}
-                    </option>
-                {/each}
-            </select>
-        </label>
-
-        <div class="form-control w-full max-w-xs">
-            <div class="label">
-                <span class="label-text">Куда</span>
-            </div>
-            <select class="select select-bordered w-full" bind:value={arrivalAirportCode}>
-                {#each airports as airport}
-                    <option value={airport.code} class="font-mono">
-                        [{airport.code}]
-                        {airport.city}
-                    </option>
-                {/each}
-            </select>
-        </div>
-
-        <div class="form-control w-full max-w-xs">
-            <label class="label">
-                <span class="label-text">Когда</span>
-            </label>
-            <input type="date" class="input input-bordered w-full" bind:value={departureDate}/>
-        </div>
-
-        <div class="form-control w-full max-w-xs h-min self-end">
-            <button class="btn btn-primary" on:click={fetchFlights}
-                    disabled={!departureAirportCode || !arrivalAirportCode}
-            >
-                Поиск
+            <button class="btn btn-success self-end" on:click={() => {
+                document.getElementById(`create_user_modal`).showModal()
+            }}>Создать пользователя
             </button>
         </div>
-    </div>
-    <div class="grid overflow-hidden">
-
-        <div class="overflow-x-auto space-y-5 flex flex-col justify-center">
-            <table class="table table-zebra w-full border border-primary col-start-1 col-end-2 row-start-1 row-end-2">
-                <thead>
-                <tr class="bg-primary text-white">
-                    <th>Идентификатор</th>
-                    <th>ФИО</th>
-                    <th>Дата регистрации</th>
-                    <th>Номер паспорта</th>
-                    <th></th>
-                </tr>
-                </thead>
-                <tbody>
-                {#each flights as flight}
-                    {@const date = new Date(flight.departureDateTime)}
-                    <tr>
-                        <td>{flight.flightNumber}</td>
-                        <td>
-                            <span class="font-mono text-primary/75">[{flight.departureAirport.code}]</span>
-                            {flight.departureAirport.city}
-                        </td>
-                        <td>
-                            <span class="font-mono text-primary/75">[{flight.arrivalAirport.code}]</span>
-                            {flight.arrivalAirport.city}
-                        </td>
-                        <td>{flight.airline.title}</td>
-                        <td>{formatDateTime(date)}</td>
-                    </tr>
+        <label class="form-control w-full">
+            <div class="label">
+                <span class="label-text">Импортировать пользователей</span>
+            </div>
+            <div class="flex flex-row space-x-16">
+                <input type="file" accept=".json" class="file-input file-input-bordered file-input-primary w-full"
+                       on:change={handleFileChange}/>
+                <button class="btn btn-success self-end" disabled={!file} on:click={uploadFile}>Импортировать</button>
+            </div>
+        </label>
+        {#if errors}
+            <ul class="space-y-4 text-red-700 list-disc list-inside">
+                {#each Object.entries(errors) as [key, values]}
+                    <li>
+                        Поле: "{key}"
+                        <ol class="ps-5 mt-2 space-y-1 list-decimal list-inside">
+                            {#each values as value}
+                                <li>{value}</li>
+                            {/each}
+                        </ol>
+                    </li>
                 {/each}
-                {#if flights.length === 0}
-                    <span class="p-4">Ничего не найдено</span>
-                {/if}
-                </tbody>
-            </table>
+            </ul>
+        {/if}
 
-            <div class="join self-center">
-                <button
-                        class="join-item btn"
-                        on:click={() => {
+    </div>
+
+    <div class="divider">Список пользователей</div>
+
+    <div class="flex flex-col space-y-5 pb-5">
+        <div class="grid overflow-hidden">
+
+            <div class="overflow-x-auto space-y-5 flex flex-col justify-center">
+                <table class="table table-zebra w-full border border-primary col-start-1 col-end-2 row-start-1 row-end-2">
+                    <thead>
+                    <tr class="bg-primary text-white">
+                        <th></th>
+                        <th>Логин</th>
+                        <th>ФИО</th>
+                        <th>Роль</th>
+                        <th>Дата регистрации</th>
+                        <th>Номер паспорта</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {#each users as user (user)}
+                        {@const date = new Date(user.createdAt)}
+                        {@const modalId = `update_user_modal_${user.login}`}
+                        <tr>
+                            <td>
+                                {#if user}
+                                    <button on:click={() => {
+                                        document.getElementById(`update_user_modal_${user.login}`).showModal()
+                                        user = user
+                                    }}>
+                                        <EditLogo/>
+                                    </button>
+                                {/if}
+                            </td>
+                            <td>{user.login}</td>
+                            <td>
+                                {user.surname} {user.name} {user === null ? user.patronymic : ''}
+                            </td>
+                            <td>{user.role}</td>
+                            <td>
+                                {formatDateTime(date)}
+                            </td>
+                            <td>{user.passportNumber}</td>
+                            <td>
+                                <button class="btn btn-error" on:click={async () => {
+                                    await deleteUserById(user.id)
+                                    users.splice(users.indexOf(user), 1)
+                                    users = users
+                                }}>
+                                    <TrashIcon/>
+                                </button>
+                            </td>
+                            {#if user}
+                                <UpdateUserModal modalId={modalId} user={user} onUpdated={() => {fetchUsers()}}/>
+                            {/if}
+                        </tr>
+                    {/each}
+                    {#if users.length === 0}
+                        <span class="p-4">Ничего не найдено</span>
+                    {/if}
+                    </tbody>
+                </table>
+
+                <div class="join self-center">
+                    <button
+                            class="join-item btn"
+                            on:click={async () => {
                             pageNumber = pageNumber - 1
-                            fetchFlights()
+                            await fetchUsers()
                         }}
-                        disabled={pageNumber <= 1}
-                >
-                    «
-                </button>
-                <button class="join-item btn">{pageNumber}</button>
-                <button
-                        class="join-item btn"
-                        on:click={() => {
+                            disabled={pageNumber <= 1}
+                    >
+                        «
+                    </button>
+                    <button class="join-item btn">{pageNumber}</button>
+                    <button
+                            class="join-item btn"
+                            on:click={async () => {
                             pageNumber = pageNumber + 1
-                            fetchFlights()
+                            await fetchUsers()
                         }}
-                        disabled={flights.length - pageSize < 0}
-                >
-                    »
-                </button>
+                            disabled={users.length - PageSize < 0}
+                    >
+                        »
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 </div>

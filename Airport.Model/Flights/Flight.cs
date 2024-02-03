@@ -10,7 +10,9 @@ public class Flight
         Airport arrivalAirport,
         Gate arrivalGate,
         DateTime arrivalDateTimeUtc,
-        Airplane airplane)
+        Airplane airplane,
+        string flightNumber,
+        bool cancelled = false)
     {
         Id = id;
         DepartureAirport = departureAirport;
@@ -25,6 +27,8 @@ public class Flight
         ArrivalGateId = arrivalGate.Id;
         ArrivalDateTimeUtc = arrivalDateTimeUtc;
         Airplane = airplane;
+        FlightNumber = flightNumber;
+        Cancelled = cancelled;
         AirplaneId = airplane.Id;
     }
 
@@ -33,6 +37,8 @@ public class Flight
     } // EF
 
     public Guid Id { get; private set; }
+
+    public string FlightNumber { get; private set; }
 
     public int DepartureAirportId { get; private set; }
 
@@ -59,4 +65,6 @@ public class Flight
     public int? AirplaneId { get; private set; }
 
     public virtual Airplane Airplane { get; private set; } = null!;
+    
+    public bool Cancelled { get; set; }
 }

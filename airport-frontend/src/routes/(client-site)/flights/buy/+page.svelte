@@ -1,11 +1,8 @@
 <script lang="ts">
-    import Authorized from '$lib/components/Authorized.svelte'
     import FlightsBuySearch from '$lib/components/FlightsBuySearch.svelte'
     
     let flightsLoading: boolean
 </script>
-
-<Authorized />
 
 <main class="px-20">
 <div class="divider divider-primary">

@@ -14,7 +14,6 @@
 
     const signIn = async () => {
         errors = await signInApiCall(login, password)
-
         if (errors.length === 0) {
             await goto('/')
         }

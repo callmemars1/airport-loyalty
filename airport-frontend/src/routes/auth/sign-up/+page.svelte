@@ -3,7 +3,7 @@
     import Form from '$lib/components/Form.svelte';
     import Preloader from '$lib/components/Preloader.svelte';
     import LabeledFormInput from '$lib/components/LabeledFormInput.svelte'
-    import { PassportNumberFormatter } from '$lib/scripts/PassportNumberFormatter';
+    import PassportNumberFormatter from '$lib/scripts/passportNumberFormatter';
 
     let name = '';
     let surname = '';
@@ -37,10 +37,10 @@
 
     const onPassportNumberChange = (newPassportNumber: string) => {
         console.log('Passport number changed:', newPassportNumber);
+        passportNumber = newPassportNumber
     };
     
     const formatter = new PassportNumberFormatter(passportNumber, onPassportNumberChange);
-
 
     const handleSubmit = async () => {
         await signUp({
